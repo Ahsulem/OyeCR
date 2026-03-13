@@ -12,7 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 // ── Lazy-loaded page components ──────────────────────────────────────────────
 const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
 const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
-const JoinPage = lazy(() => import("@/pages/JoinPage"));
+const StudentJoinPage = lazy(() => import("@/pages/StudentJoinPage"));
 const CRDashboardPage = lazy(() => import("@/pages/CRDashboardPage"));
 const StudentPortalPage = lazy(() => import("@/pages/StudentPortalPage"));
 const ClassSetupPage = lazy(() => import("@/pages/cr/ClassSetupPage"));
@@ -37,7 +37,7 @@ export default function App() {
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/join/:inviteCode" element={<JoinPage />} />
+            <Route path="/join/:inviteCode" element={<StudentJoinPage />} />
             <Route path="/consent/:token" element={<ConsentVerificationPage />} />
 
             {/* ── Protected ── */}
