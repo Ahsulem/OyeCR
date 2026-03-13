@@ -4,7 +4,7 @@
   "description": "Class Representative Portal",
   "scripts": {
     "dev": "vite",
-    "build": "npx vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "keywords": [],
