@@ -15,7 +15,7 @@ const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const JoinPage = lazy(() => import("@/pages/JoinPage"));
 const CRDashboardPage = lazy(() => import("@/pages/CRDashboardPage"));
 const StudentPortalPage = lazy(() => import("@/pages/StudentPortalPage"));
-const ClassSetupPage = lazy(() => import("@/pages/ClassSetupPage"));
+const ClassSetupPage = lazy(() => import("@/pages/cr/ClassSetupPage"));
 
 // ── Full-page loading spinner used as Suspense fallback ───────────────────────
 function PageSpinner() {
