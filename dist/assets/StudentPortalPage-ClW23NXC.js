@@ -1,0 +1,1 @@
+import{j as e}from"./index-D8kjb3ZG.js";import{P as t}from"./PageShell-ByQU05MI.js";function n(){return e.jsx(t,{children:e.jsx("div",{className:"flex flex-1 items-center justify-center",children:e.jsx("p",{className:"text-lg font-medium",children:"Student Portal — coming soon"})})})}export{n as default};

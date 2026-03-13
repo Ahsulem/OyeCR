@@ -1,0 +1,1 @@
+import{u as i,j as e}from"./index-D8kjb3ZG.js";function t(){const{inviteCode:s}=i();return e.jsx("div",{className:"flex h-screen items-center justify-center",children:e.jsxs("p",{className:"text-lg font-medium",children:["Join via invite code: ",e.jsx("code",{children:s})," — coming soon"]})})}export{t as default};

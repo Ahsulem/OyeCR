@@ -1,0 +1,1 @@
+import{j as e}from"./index-D8kjb3ZG.js";function s(){return e.jsx("div",{className:"flex h-screen items-center justify-center",children:e.jsx("p",{className:"text-lg font-medium",children:"Login — coming soon"})})}export{s as default};

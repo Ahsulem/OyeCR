@@ -1,0 +1,1 @@
+import{j as e}from"./index-D8kjb3ZG.js";import{P as s}from"./PageShell-ByQU05MI.js";function a(){return e.jsx(s,{children:e.jsx("div",{className:"flex flex-1 items-center justify-center",children:e.jsx("p",{className:"text-lg font-medium",children:"CR Dashboard — coming soon"})})})}export{a as default};
