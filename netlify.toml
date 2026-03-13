@@ -1,6 +1,6 @@
 [build]
   base = "/"
-  command = "npm run build"
+  command = "npm ci --include=dev && npm run build"
   publish = "dist"
 
 # Single Page Application SPA Routing
