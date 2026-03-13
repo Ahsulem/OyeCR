@@ -7,10 +7,11 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/layout/ProtectedRoute";
+import { Toaster } from "@/components/ui/sonner";
 
 // ── Lazy-loaded page components ──────────────────────────────────────────────
-const LoginPage = lazy(() => import("@/pages/LoginPage"));
-const RegisterPage = lazy(() => import("@/pages/RegisterPage"));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const RegisterPage = lazy(() => import("@/pages/auth/RegisterPage"));
 const JoinPage = lazy(() => import("@/pages/JoinPage"));
 const CRDashboardPage = lazy(() => import("@/pages/CRDashboardPage"));
 const StudentPortalPage = lazy(() => import("@/pages/StudentPortalPage"));
@@ -44,10 +45,10 @@ export default function App() {
               <Route path="/class/setup" element={<ClassSetupPage />} />
             </Route>
 
-            {/* ── 404 fallback ── */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
+        <Toaster />
       </BrowserRouter>
     </AuthProvider>
   );
