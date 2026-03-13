@@ -398,3 +398,30 @@ CREATE POLICY "Service role can insert notifications."
     ON notifications FOR INSERT
     WITH CHECK (current_setting('request.jwt.claims', true)::json->>'role' = 'service_role');
 
+-- --------------------------------------------------------
+-- 6. TRIGGERS
+-- --------------------------------------------------------
+
+-- Create a trigger function to handle new user signups
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.users (id, email, full_name, roll_number, role, phone)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', 'Unknown'),
+    NEW.raw_user_meta_data->>'roll_number',
+    COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'student'::public.user_role),
+    NEW.raw_user_meta_data->>'phone'
+  );
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Attach the trigger to auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
