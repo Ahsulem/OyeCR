@@ -149,3 +149,252 @@ CREATE INDEX idx_teachers_consent_token ON teachers(consent_token);
 
 CREATE INDEX idx_courses_class_id ON courses(class_id);
 CREATE INDEX idx_courses_teacher_id ON courses(teacher_id);
+
+-- --------------------------------------------------------
+-- 5. ROW LEVEL SECURITY (RLS) POLICIES
+-- --------------------------------------------------------
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE class_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE teachers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE request_attachments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE forwarding_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
+-- --------------------------------------------------------
+-- users table policies
+-- --------------------------------------------------------
+-- Users can read and update only their own row
+CREATE POLICY "Users can view their own profile."
+    ON users FOR SELECT
+    USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile."
+    ON users FOR UPDATE
+    USING (auth.uid() = id);
+
+-- --------------------------------------------------------
+-- classes table policies
+-- --------------------------------------------------------
+-- CRs can insert, select, update their own class
+CREATE POLICY "CRs can insert their own class."
+    ON classes FOR INSERT
+    WITH CHECK (auth.uid() = cr_id);
+
+CREATE POLICY "CRs can view their own class."
+    ON classes FOR SELECT
+    USING (auth.uid() = cr_id);
+
+CREATE POLICY "CRs can update their own class."
+    ON classes FOR UPDATE
+    USING (auth.uid() = cr_id);
+
+-- Students can select a class if they are a member
+CREATE POLICY "Students can view classes they are members of."
+    ON classes FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM class_members
+        WHERE class_members.class_id = classes.id
+        AND class_members.student_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- class_members table policies
+-- --------------------------------------------------------
+-- Students can insert their own membership
+CREATE POLICY "Students can join a class."
+    ON class_members FOR INSERT
+    WITH CHECK (auth.uid() = student_id);
+
+-- Students can select their own membership rows
+CREATE POLICY "Students can view their own memberships."
+    ON class_members FOR SELECT
+    USING (auth.uid() = student_id);
+
+-- CRs can select all members of their class
+CREATE POLICY "CRs can view all members in their class."
+    ON class_members FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_members.class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- teachers table policies
+-- --------------------------------------------------------
+-- CRs can insert/update/select teachers for their own class
+CREATE POLICY "CRs can insert teachers for their class."
+    ON teachers FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can view teachers for their class."
+    ON teachers FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can update teachers for their class."
+    ON teachers FOR UPDATE
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+-- Public select allowed only by consent_token for the consent verification endpoint
+CREATE POLICY "Public can view teacher by consent token."
+    ON teachers FOR SELECT
+    USING (consent_token IS NOT NULL);
+
+-- --------------------------------------------------------
+-- courses table policies
+-- --------------------------------------------------------
+-- CRs can insert/update/select courses for their own class
+CREATE POLICY "CRs can insert courses for their class."
+    ON courses FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can view courses for their class."
+    ON courses FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can update courses for their class."
+    ON courses FOR UPDATE
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+-- Students can select courses for their class (they are a member)
+CREATE POLICY "Students can view courses for their class."
+    ON courses FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM class_members
+        WHERE class_members.class_id = courses.class_id
+        AND class_members.student_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- requests table policies
+-- --------------------------------------------------------
+-- Students can insert requests for their own class
+CREATE POLICY "Students can create requests for their class."
+    ON requests FOR INSERT
+    WITH CHECK (auth.uid() = student_id AND EXISTS (
+        SELECT 1 FROM class_members
+        WHERE class_members.class_id = requests.class_id
+        AND class_members.student_id = auth.uid()
+    ));
+
+-- Students can select only their own requests
+CREATE POLICY "Students can view their own requests."
+    ON requests FOR SELECT
+    USING (auth.uid() = student_id);
+
+-- CRs can select/update all requests for their class
+CREATE POLICY "CRs can view all requests for their class."
+    ON requests FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = requests.class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can update all requests for their class."
+    ON requests FOR UPDATE
+    USING (EXISTS (
+        SELECT 1 FROM classes
+        WHERE classes.id = requests.class_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- request_attachments table policies
+-- --------------------------------------------------------
+-- Students can insert attachments for their own requests
+CREATE POLICY "Students can add attachments to their requests."
+    ON request_attachments FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM requests
+        WHERE requests.id = request_id
+        AND requests.student_id = auth.uid()
+    ));
+
+-- CRs can select all attachments for their class requests
+CREATE POLICY "CRs can view attachments for their class requests."
+    ON request_attachments FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM requests
+        WHERE requests.id = request_attachments.request_id
+        AND EXISTS (
+             SELECT 1 FROM classes
+             WHERE classes.id = requests.class_id
+             AND classes.cr_id = auth.uid()
+        )
+    ));
+
+-- Students can select attachments for their own requests
+CREATE POLICY "Students can view attachments for their own requests."
+    ON request_attachments FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM requests
+        WHERE requests.id = request_attachments.request_id
+        AND requests.student_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- forwarding_log table policies
+-- --------------------------------------------------------
+-- CRs can insert and select logs for their class
+CREATE POLICY "CRs can log forwarded requests."
+    ON forwarding_log FOR INSERT
+    WITH CHECK (EXISTS (
+        SELECT 1 FROM requests
+        JOIN classes ON classes.id = requests.class_id
+        WHERE requests.id = request_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+CREATE POLICY "CRs can view logs for their class requests."
+    ON forwarding_log FOR SELECT
+    USING (EXISTS (
+        SELECT 1 FROM requests
+        JOIN classes ON classes.id = requests.class_id
+        WHERE requests.id = forwarding_log.request_id
+        AND classes.cr_id = auth.uid()
+    ));
+
+-- --------------------------------------------------------
+-- notifications table policies
+-- --------------------------------------------------------
+-- Users can select their own notifications
+CREATE POLICY "Users can view their own notifications."
+    ON notifications FOR SELECT
+    USING (auth.uid() = user_id);
+
+-- Service role can insert (Edge Functions use service role key)
+-- Bypasses RLS by default, but explicitly added for completeness
+CREATE POLICY "Service role can insert notifications."
+    ON notifications FOR INSERT
+    WITH CHECK (current_setting('request.jwt.claims', true)::json->>'role' = 'service_role');
+
