@@ -16,6 +16,7 @@ const JoinPage = lazy(() => import("@/pages/JoinPage"));
 const CRDashboardPage = lazy(() => import("@/pages/CRDashboardPage"));
 const StudentPortalPage = lazy(() => import("@/pages/StudentPortalPage"));
 const ClassSetupPage = lazy(() => import("@/pages/cr/ClassSetupPage"));
+const ConsentVerificationPage = lazy(() => import("@/pages/ConsentVerificationPage"));
 
 // ── Full-page loading spinner used as Suspense fallback ───────────────────────
 function PageSpinner() {
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/join/:inviteCode" element={<JoinPage />} />
+            <Route path="/consent/:token" element={<ConsentVerificationPage />} />
 
             {/* ── Protected ── */}
             <Route element={<ProtectedRoute />}>
